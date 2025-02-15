@@ -1,41 +1,48 @@
-# Github Actions Workflow file that builds and pushes the docker images.
+# Github Actions Workflow file that builds and pushes the Docker image.
 name: practicalgitops.app
+
 env:
-  DOCKERHUB_TAG: "${{ secrets.DOCKERHUB_USERNAME }}/practicalgitops"
-  DOCKERFILE_PATH: Chapter6/app
+  DOCKERHUB_TAG: "${{ secrets.DOCKERHUB_USERNAME }}/practicalgitops:latest"
+  DOCKERFILE_PATH: ./Chapter6/app  # Ensure the correct path
 
 on:
   push:
     branches:
       - main
     paths:
-      - "Chapter6/app/**"
+      - "Chapter6/app/**"  # Ensure path is correct
       - "!**/README.md"
 
-# Job declaration starts.
 jobs:
   docker:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Check out code
-        uses: actions/checkout@v2
+      - name: Check out the repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Ensures full history for better reliability
 
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v1
+        uses: docker/setup-qemu-action@v2
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
+        uses: docker/setup-buildx-action@v2
 
       - name: Login to DockerHub
-        uses: docker/login-action@v1
+        uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Build and push
+      - name: Build and Push Docker Image
         id: docker_build
-        uses: docker/build-push-action@v2
+        uses: docker/build-push-action@v5
         with:
-          context: "${{ env.DOCKERFILE_PATH }}"
+          context: ${{ env.DOCKERFILE_PATH }}
           push: true
-          tags: "${{ env.DOCKERHUB_TAG }}:latest"
+          tags: ${{ env.DOCKERHUB_TAG }}
+          platforms: linux/amd64,linux/arm64  # Builds for multiple architectures
+
+      - name: Verify Build Status
+        run: echo "Docker build completed: ${{ steps.docker_build.outcome }}"
