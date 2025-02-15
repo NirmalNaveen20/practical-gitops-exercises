@@ -43,6 +43,3 @@ jobs:
           push: true
           tags: ${{ env.DOCKERHUB_TAG }}
           platforms: linux/amd64,linux/arm64  # Builds for multiple architectures
-
-      - name: Verify Build Status
-        run: echo "Docker build completed: ${{ steps.docker_build.outcome }}"
